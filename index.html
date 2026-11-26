@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Политика конфиденциальности — Беги, бро, беги (Run, Bro, Run)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b16;
+      --card: #11182c;
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --gold: #fde047;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px 16px 48px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #ffffff;
+    }
+    .lang-btns {
+      display: flex;
+      gap: 6px;
+    }
+    .lang-btn {
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .lang-btn.active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      color: var(--gold);
+    }
+    p, li {
+      font-size: 14.5px;
+      margin: 0 0 10px;
+    }
+    ul {
+      padding-left: 20px;
+      margin: 6px 0 0;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1 id="page-title">Политика конфиденциальности</h1>
+      <div class="lang-btns">
+        <button id="btn-ru" class="lang-btn active" type="button" onclick="setLang('ru')">RU</button>
+        <button id="btn-en" class="lang-btn" type="button" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+
+    <div id="content-ru">
+      <div class="meta">Приложение: <strong>«Беги, бро, беги» (Run, Bro, Run)</strong> • Дата обновления: 27 ноября 2026 г.</div>
+
+      <div class="card">
+        <h2>1. Общие положения</h2>
+        <p>Настоящая Политика конфиденциальности объясняет, какие данные обрабатываются мобильной игрой «Беги, бро, беги» (далее — «Приложение»), разработанной Гудратдином Алиевым (далее — «Разработчик»). Используя Приложение, вы соглашаетесь с условиями настоящей Политики.</p>
+      </div>
+
+      <div class="card">
+        <h2>2. Какие данные собираются и зачем</h2>
+        <p>Приложение не требует указания номера телефона, адреса электронной почты, паспортных данных, платёжных реквизитов, а также не запрашивает доступ к геолокации, контактам или камере. Обрабатываются только технические и игровые данные:</p>
+        <ul>
+          <li><strong>Анонимный идентификатор профиля (player_id) и игровой никнейм/аватар</strong> — используются для облачного сохранения прогресса, участия в таблице лидеров, дуэлях, мини-кланах, рейде на Мирового Босса и публикации пользовательских трасс.</li>
+          <li><strong>Игровой прогресс</strong> (рекорды, уровни, внутриигровые предметы и настройки) — хранится локально на устройстве (localStorage) и синхронизируется с облачным хранилищем.</li>
+          <li><strong>Датчики движения (гироскоп / акселерометр)</strong> — используются исключительно локально для управления наклоном (только если игрок сам включил эту опцию в настройках); данные датчиков не записываются и никуда не передаются.</li>
+          <li><strong>Защита от взлома</strong> — при синхронизации рекордов сервер проверяет целостность игровых показателей для поддержания честной таблицы лидеров.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>3. Сторонние сервисы и передача данных</h2>
+        <p>Для облачного сохранения прогресса и онлайн-функций Приложение использует облачную базу данных <strong>Supabase</strong> по защищённому протоколу HTTPS. Разработчик не продаёт и не передаёт данные пользователей рекламным сетям или брокерам данных.</p>
+      </div>
+
+      <div class="card" id="account-deletion">
+        <h2>4. Хранение и удаление аккаунта и данных</h2>
+        <p>Игровые данные хранятся, пока пользователь использует профиль. Вы можете полностью и безвозвратно удалить свой аккаунт и все облачные данные в любой момент двумя способами:</p>
+        <ul>
+          <li><strong>Внутри игры:</strong> откройте <strong>Профиль → «Удалить аккаунт из облака»</strong> и подтвердите действие. Все записи профиля (таблица лидеров, регистрация, дуэли, кланы, Мировой Босс, трассы и ключ безопасности) будут немедленно удалены с сервера и с устройства.</li>
+          <li><strong>По электронной почте:</strong> напишите на <a href="mailto:guseynaliev12@gmail.com">guseynaliev12@gmail.com</a> с темой «Удаление аккаунта» и укажите ваш игровой ID (<code>BR-XXXX-XXXX</code>). Все данные будут удалены в течение 7 рабочих дней.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>5. Конфиденциальность детей</h2>
+        <p>Приложение не осуществляет целенаправленный сбор персональных данных детей младше 13 лет. Если вы считаете, что ребёнок указал личные данные в игровом никнейме, напишите нам для немедленного удаления записи.</p>
+      </div>
+
+      <div class="card">
+        <h2>6. Контакты и изменения политики</h2>
+        <p>Разработчик может обновлять настоящую Политику по мере развития Приложения. Актуальная версия всегда доступна на этой странице.</p>
+        <p><strong>Связаться с разработчиком / Поддержка:</strong> <a href="mailto:guseynaliev12@gmail.com">guseynaliev12@gmail.com</a></p>
+      </div>
+    </div>
+
+    <div id="content-en" class="hidden">
+      <div class="meta">App: <strong>Run, Bro, Run («Беги, бро, беги»)</strong> • Last updated: November 27, 2026</div>
+
+      <div class="card">
+        <h2>1. Overview</h2>
+        <p>This Privacy Policy describes how the mobile game "Run, Bro, Run" (the "App"), developed by Gudratdin Aliev (the "Developer"), handles gameplay data. By using the App, you agree to the practices described in this Policy.</p>
+      </div>
+
+      <div class="card">
+        <h2>2. Data We Process and Why</h2>
+        <p>The App does not require a phone number, email address, real name, payment details, location, contacts, or camera access. Only technical and gameplay data are processed:</p>
+        <ul>
+          <li><strong>Anonymous Profile ID (player_id), Nickname &amp; Avatar</strong> — used to enable cloud save sync, leaderboards, seeded duels, mini-clans, Global World Boss raids, and custom tracks.</li>
+          <li><strong>Game Progress</strong> (scores, levels, unlocked items, settings) — stored locally on your device (localStorage) and synced to cloud storage.</li>
+          <li><strong>Motion Sensors (Gyroscope / Accelerometer)</strong> — processed strictly on-device when tilt steering is enabled by the player in Settings; sensor data is never recorded or transmitted.</li>
+          <li><strong>Anti-Cheat Integrity</strong> — server-side validation checks are performed during score sync to keep leaderboards fair.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>3. Third-Party Services</h2>
+        <p>The App uses <strong>Supabase</strong> over encrypted HTTPS connections for cloud saves and multiplayer leaderboards. We do not sell user data or share it with advertising networks or data brokers.</p>
+      </div>
+
+      <div class="card">
+        <h2>4. Data Retention &amp; Account Deletion</h2>
+        <p>Gameplay data is retained while the profile is active. You can permanently delete your account and all associated cloud data at any time in two ways:</p>
+        <ul>
+          <li><strong>In-App Deletion:</strong> open <strong>Profile → "Delete Cloud Account"</strong> and confirm. All server records (profile, registration, leaderboards, duels, clans, World Boss, custom tracks, and security key) and local data are deleted immediately.</li>
+          <li><strong>Email Request:</strong> send an email to <a href="mailto:guseynaliev12@gmail.com">guseynaliev12@gmail.com</a> with the subject "Account Deletion" and your Player ID (<code>BR-XXXX-XXXX</code>). Data will be permanently erased within 7 business days.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>5. Children's Privacy</h2>
+        <p>The App does not knowingly collect personal information from children under 13. If you believe personal details were entered as a player nickname, contact us for immediate removal.</p>
+      </div>
+
+      <div class="card">
+        <h2>6. Contact &amp; Updates</h2>
+        <p>We may update this Privacy Policy from time to time. The latest version is always published at this URL.</p>
+        <p><strong>Developer Support:</strong> <a href="mailto:guseynaliev12@gmail.com">guseynaliev12@gmail.com</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setLang(lang) {
+      document.getElementById('content-ru').classList.toggle('hidden', lang !== 'ru');
+      document.getElementById('content-en').classList.toggle('hidden', lang !== 'en');
+      document.getElementById('btn-ru').classList.toggle('active', lang === 'ru');
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      document.getElementById('page-title').textContent = lang === 'en' ? 'Privacy Policy' : 'Политика конфиденциальности';
+      document.documentElement.lang = lang;
+    }
+  </script>
+</body>
+</html>
