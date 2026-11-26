@@ -1,0 +1,206 @@
+name: Build Android AAB & APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: "versionCode (1, 2, 3...)"
+        required: true
+        default: "1"
+      version_name:
+        description: "Version name (1.0.0)"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack ZIP
+        run: unzip -o begi-bro-begi-android-v41.zip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Install Pillow
+        run: python3 -m pip install --break-system-packages --quiet Pillow || (sudo apt-get update -qq && sudo apt-get install -y -qq python3-pil)
+
+      - name: Capacitor Android
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: Prepare Android
+        env:
+          VERSION_CODE: ${{ inputs.version_code || '1' }}
+          VERSION_NAME: ${{ inputs.version_name || '1.0.0' }}
+          TARGET_SDK: "35"
+        run: |
+          python3 - <<'PY'
+          import os, re, glob
+          from PIL import Image, ImageOps
+
+          ROOT = os.getcwd()
+          ANDROID_DIR = os.path.join(ROOT, "android")
+          APP_DIR = os.path.join(ANDROID_DIR, "app")
+          RES_DIR = os.path.join(APP_DIR, "src", "main", "res")
+          OUT_STORE = os.path.join(ROOT, "store-assets")
+          os.makedirs(OUT_STORE, exist_ok=True)
+
+          def find_first(patterns):
+              for pat in patterns:
+                  m = sorted(glob.glob(os.path.join(ROOT, pat)))
+                  if m:
+                      return m[0]
+              return None
+
+          icon_src = find_first(["icon.png", "icon.jpg", "icon.jpeg", "icon.webp", "assets/default-icon.png"])
+          im_512 = ImageOps.fit(Image.open(icon_src).convert("RGBA"), (512, 512), method=Image.Resampling.LANCZOS)
+          im_512.save(os.path.join(OUT_STORE, "play-store-icon-512x512.png"), "PNG")
+
+          banner_src = find_first(["banner.png", "banner.jpg", "banner.jpeg", "banner.webp", "feature.png", "feature.jpg"])
+          if banner_src:
+              im_1024 = ImageOps.fit(Image.open(banner_src).convert("RGB"), (1024, 500), method=Image.Resampling.LANCZOS)
+              im_1024.save(os.path.join(OUT_STORE, "play-store-banner-1024x500.png"), "PNG")
+
+          mipmap_sizes = {
+              "mipmap-mdpi": (48, 108),
+              "mipmap-hdpi": (72, 162),
+              "mipmap-xhdpi": (96, 216),
+              "mipmap-xxhdpi": (144, 324),
+              "mipmap-xxxhdpi": (192, 432),
+          }
+          for folder, (sz, fg_sz) in mipmap_sizes.items():
+              d = os.path.join(RES_DIR, folder)
+              os.makedirs(d, exist_ok=True)
+              im_512.resize((sz, sz), Image.Resampling.LANCZOS).save(os.path.join(d, "ic_launcher.png"), "PNG")
+              im_512.resize((sz, sz), Image.Resampling.LANCZOS).save(os.path.join(d, "ic_launcher_round.png"), "PNG")
+              fg = Image.new("RGBA", (fg_sz, fg_sz), (0, 0, 0, 0))
+              inner = int(fg_sz * 0.72)
+              im_in = im_512.resize((inner, inner), Image.Resampling.LANCZOS)
+              off = (fg_sz - inner) // 2
+              fg.paste(im_in, (off, off), im_in)
+              fg.save(os.path.join(d, "ic_launcher_foreground.png"), "PNG")
+
+          bg_dir = os.path.join(RES_DIR, "values")
+          os.makedirs(bg_dir, exist_ok=True)
+          with open(os.path.join(bg_dir, "ic_launcher_background.xml"), "w", encoding="utf-8") as f:
+              f.write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#070b16</color>\n</resources>\n')
+
+          mf_path = os.path.join(APP_DIR, "src", "main", "AndroidManifest.xml")
+          with open(mf_path, "r", encoding="utf-8") as f:
+              mf = f.read()
+          if "android.permission.VIBRATE" not in mf:
+              mf = mf.replace('<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />')
+          if 'android:screenOrientation=' not in mf:
+              mf = mf.replace('android:name=".MainActivity"', 'android:name=".MainActivity"\n            android:screenOrientation="portrait"')
+          if 'android:usesCleartextTraffic=' not in mf:
+              mf = mf.replace('<application', '<application\n        android:usesCleartextTraffic="false"', 1)
+          with open(mf_path, "w", encoding="utf-8") as f:
+              f.write(mf)
+
+          vars_path = os.path.join(ANDROID_DIR, "variables.gradle")
+          if os.path.exists(vars_path):
+              with open(vars_path, "r", encoding="utf-8") as f:
+                  vtxt = f.read()
+              vtxt = re.sub(r"compileSdkVersion\s*=\s*\d+", "compileSdkVersion = 35", vtxt)
+              vtxt = re.sub(r"targetSdkVersion\s*=\s*\d+", "targetSdkVersion = 35", vtxt)
+              with open(vars_path, "w", encoding="utf-8") as f:
+                  f.write(vtxt)
+          PY
+
+      - name: Setup Keystore & Gradle Signing
+        env:
+          VERSION_CODE: ${{ inputs.version_code || '1' }}
+          VERSION_NAME: ${{ inputs.version_name || '1.0.0' }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          KS="$PWD/android/app/upload-keystore.jks"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$KS"
+            PASS="$KEYSTORE_PASSWORD"
+            ALIAS="${KEY_ALIAS:-begibro}"
+            KPASS="${KEY_PASSWORD:-$PASS}"
+          else
+            PASS="$(openssl rand -hex 12)"
+            ALIAS="begibro"
+            KPASS="$PASS"
+            keytool -genkeypair -v -storetype PKCS12 -keystore "$KS" -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -storepass "$PASS" -keypass "$KPASS" -dname "CN=Gudratdin Aliev, OU=Games, O=BegiBro, L=Derbent, C=RU"
+            mkdir -p generated-keystore
+            cp "$KS" generated-keystore/upload-keystore.jks
+            base64 -w 0 "$KS" > generated-keystore/KEYSTORE_BASE64.txt
+            printf "KEYSTORE_PASSWORD=%s\nKEY_ALIAS=%s\nKEY_PASSWORD=%s\n" "$PASS" "$ALIAS" "$KPASS" > generated-keystore/SAVE_THESE_SECRETS.txt
+          fi
+
+          cat >> android/gradle.properties <<EOF
+          RELEASE_STORE_FILE=$KS
+          RELEASE_STORE_PASSWORD=$PASS
+          RELEASE_KEY_ALIAS=$ALIAS
+          RELEASE_KEY_PASSWORD=$KPASS
+          EOF
+
+          python3 - <<'PY'
+          import os
+          p = "android/app/build.gradle"
+          with open(p, "r", encoding="utf-8") as f:
+              g = f.read()
+          v_code = os.environ.get("VERSION_CODE", "1")
+          v_name = os.environ.get("VERSION_NAME", "1.0.0")
+          g = g.replace("versionCode 1", f"versionCode {v_code}").replace('versionName "1.0"', f'versionName "{v_name}"')
+          if "RELEASE_STORE_FILE" not in g:
+              g = g.replace(
+                  "    buildTypes {",
+                  """    signingConfigs {
+        release {
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
+                storeFile file(project.property('RELEASE_STORE_FILE'))
+                storePassword project.property('RELEASE_STORE_PASSWORD')
+                keyAlias project.property('RELEASE_KEY_ALIAS')
+                keyPassword project.property('RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {""",
+                  1
+              )
+              g = g.replace(
+                  "        release {",
+                  "        release {\n            signingConfig signingConfigs.release",
+                  1
+              )
+          with open(p, "w", encoding="utf-8") as f:
+              f.write(g)
+          PY
+
+      - name: Build AAB and APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease assembleDebug
+
+      - name: Collect Artifacts
+        run: |
+          mkdir -p release-output
+          cp android/app/build/outputs/bundle/release/app-release.aab "release-output/begi-bro-begi-v${{ inputs.version_name || '1.0.0' }}.aab"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release-output/begi-bro-begi-test-v${{ inputs.version_name || '1.0.0' }}.apk"
+          cp -r store-assets/* release-output/ || true
+          [ -d "generated-keystore" ] && cp -r generated-keystore release-output/ || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: begi-bro-begi-google-play-v${{ inputs.version_name || '1.0.0' }}
+          path: release-output/
+          retention-days: 30
